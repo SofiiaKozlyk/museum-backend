@@ -5,6 +5,9 @@ import { plainToInstance } from 'class-transformer';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 
+const MinLoginLength = 4;
+const MinPasswordLength = 4;
+
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
@@ -33,4 +36,23 @@ export class UsersController {
 
         return plainToInstance(User, user, { excludeExtraneousValues: true });
     }
+
+    @ApiOperation({ summary: 'Регистрация нового пользователя' })
+    @ApiResponse({ status: 201, description: 'Пользователь успешно зарегистрирован' })
+    @ApiResponse({ status: 400, description: 'Некорректные данные' })
+    @Post('register')
+    async register(@Body() createUserDto: CreateUserDto) {
+      if (
+        (!createUserDto.username || !createUserDto.password) ||
+        (createUserDto.username.length < MinLoginLength) || (createUserDto.password.length < MinPasswordLength)
+      ) {
+        throw new BadRequestException(`Длинна пароля и логина должна быть не меньше ${MinLoginLength} символов`);
+      }
+  
+      const user = this.usersService.create(createUserDto.username, createUserDto.password);
+
+      return plainToInstance(User, user, { excludeExtraneousValues: true });
+    }
+
+
 }
