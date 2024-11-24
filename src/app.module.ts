@@ -3,6 +3,8 @@ import { AppController } from './app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { User } from './users/user.entity';
+import { AuthModule } from './auth/auth.module'; 
+// import { DemoProtectedRouteModule } from './demo-protected-route/demo-protected-route.module';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
@@ -14,8 +16,10 @@ import { User } from './users/user.entity';
     database: "museum_db",
     entities: [User],
     synchronize: false,
-  }), UsersModule],
-  controllers: [AppController],
-  providers: [],
+  }),
+    AuthModule,
+    UsersModule,
+    // DemoProtectedRouteModule
+  ]
 })
 export class AppModule { }
