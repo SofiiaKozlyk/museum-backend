@@ -1,11 +1,12 @@
-import { BadRequestException, Body, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Get, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ExhibitsService } from './exhibits.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateExhibitDto } from './dto/create-exhibit.dto';
 import { plainToInstance } from 'class-transformer';
 import { Exhibit } from './exhibits.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PaginatedExhibits } from 'src/types/PaginatedExhibits';
 
 @ApiTags('exhibits')
 @Controller('api/exhibits')
@@ -53,6 +54,30 @@ export class ExhibitsController {
     }
 
 
+    @Get()
+    @ApiOperation({ summary: 'Get all exhibits with pagination' })
+    @ApiResponse({ status: 200, description: 'List of all exhibits' })
+    @ApiResponse({ status: 400, description: 'Bad request, e.g., invalid pagination parameters' })
+    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number for pagination', example: 1 })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of items per page', example: 10 })
+    async getExhibits(
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+    ) {
+        if (!page || page <= 0) {
+            throw new BadRequestException('Page number must be greater than 0');
+        }
+
+        if (!limit || limit <= 0) {
+            throw new BadRequestException('Limit must be greater than 0');
+        }
+
+        const exhibits = await this.exhibitsService.getExhibits(page, limit);
+        return {
+            ...exhibits,
+            data: plainToInstance(Exhibit, exhibits.data, { excludeExtraneousValues: true })
+        };
+    }
 
 
 
