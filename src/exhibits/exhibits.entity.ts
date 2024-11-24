@@ -33,12 +33,11 @@ export class Exhibit {
     @Column()
     userId: number;
 
+    @Expose()
     @ApiProperty({
         example: '2024-11-24T12:34:56.789Z',
         description: 'Date and time when the exhibit was created (ISO 8601 format)'
     })
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    createdAt!: Date;
-    // @CreateDateColumn()
-    // createdAt: Date;
+    createdAt: Date;
 }
