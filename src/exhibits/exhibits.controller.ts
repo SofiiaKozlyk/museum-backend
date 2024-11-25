@@ -1,5 +1,5 @@
-import { BadRequestException, Body, Controller, Get, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ExhibitsService } from './exhibits.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateExhibitDto } from './dto/create-exhibit.dto';
@@ -64,14 +64,6 @@ export class ExhibitsController {
         @Query('page') page: number = 1,
         @Query('limit') limit: number = 10,
     ) {
-        if (!page || page <= 0) {
-            throw new BadRequestException('Page number must be greater than 0');
-        }
-
-        if (!limit || limit <= 0) {
-            throw new BadRequestException('Limit must be greater than 0');
-        }
-
         const exhibits = await this.exhibitsService.getExhibits(page, limit);
         return {
             ...exhibits,
@@ -79,6 +71,20 @@ export class ExhibitsController {
         };
     }
 
+    @Get('post/:id')
+    @ApiOperation({ summary: 'Get an exhibit by ID' })
+    @ApiParam({ name: 'id', description: 'ID of the exhibit', example: 1 })
+    @ApiResponse({ status: 200, description: 'Exhibit found' })
+    @ApiResponse({ status: 404, description: 'Exhibit not found' })
+    async getExhibitById(@Param('id', ParseIntPipe) id: number): Promise<Exhibit> {
+        const exhibit = this.exhibitsService.getExhibitById(id);
+        
+        if (!exhibit) {
+            throw new NotFoundException(`Exhibit with id ${id} not found`);
+          }
+
+        return plainToInstance(Exhibit, exhibit, { excludeExtraneousValues: true });
+    }
 
 
 
