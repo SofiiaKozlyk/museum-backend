@@ -8,14 +8,14 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 export class AuthController {
   constructor(private authService: AuthService) { }
 
-  @ApiOperation({ summary: 'Вход пользователя' })
-  @ApiResponse({ status: 200, description: 'Успешная авторизация, возвращает JWT токен и имя пользователя' })
-  @ApiResponse({ status: 401, description: 'Неверное имя пользователя или пароль' })
+  @ApiOperation({ summary: 'User login' })
+  @ApiResponse({ status: 200, description: 'Successful authorization, returns a JWT token and username' })
+  @ApiResponse({ status: 401, description: 'Invalid username or password' })
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res() res) {
 
     if (!loginDto.username || !loginDto.password) {
-      throw new BadRequestException('Данные указаны неверно');
+      throw new BadRequestException('Invalid data provided');
     }
 
     const user = await this.authService.validateUser(loginDto.username, loginDto.password);

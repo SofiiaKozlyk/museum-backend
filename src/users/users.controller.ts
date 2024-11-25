@@ -13,17 +13,17 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Get()
-    @ApiOperation({ summary: 'Получение списка пользователей' })
-    @ApiQuery({ name: 'id', required: false, description: 'ID пользователя' })
-    @ApiQuery({ name: 'username', required: false, description: 'Имя пользователя' })
-    @ApiResponse({ status: 200, description: 'Успешное получение списка пользователей' })
-    @ApiResponse({ status: 404, description: 'Пользователи не найдены' })
+    @ApiOperation({ summary: 'Get an user by ID or username' })
+    @ApiQuery({ name: 'id', required: false, description: 'ID of the user' })
+    @ApiQuery({ name: 'username', required: false, description: 'Username of the user' })
+    @ApiResponse({ status: 200, description: 'User found' })
+    @ApiResponse({ status: 404, description: 'User not found' })
     async getUser(
         @Query('id') id?: number,
         @Query('username') username?: string,
     ){
         if (!id && !username) {
-            throw new NotFoundException('ID или username должны быть указаны');
+            throw new NotFoundException('Either ID or username must be provided');
         }
 
         const user = id ?
@@ -31,28 +31,26 @@ export class UsersController {
             await this.usersService.findByUsername(username);
 
         if (!user) {
-            throw new NotFoundException('Пользователь не найден');
+            throw new NotFoundException('User not found');
         }
 
         return plainToInstance(User, user, { excludeExtraneousValues: true });
     }
 
-    @ApiOperation({ summary: 'Регистрация нового пользователя' })
-    @ApiResponse({ status: 201, description: 'Пользователь успешно зарегистрирован' })
-    @ApiResponse({ status: 400, description: 'Некорректные данные' })
+    @ApiOperation({ summary: 'Registration of a new user' })
+    @ApiResponse({ status: 201, description: 'User successfully registered' })
+    @ApiResponse({ status: 400, description: 'Invalid data provided' })
     @Post('register')
     async register(@Body() createUserDto: CreateUserDto) {
       if (
         (!createUserDto.username || !createUserDto.password) ||
         (createUserDto.username.length < MinLoginLength) || (createUserDto.password.length < MinPasswordLength)
       ) {
-        throw new BadRequestException(`Длинна пароля и логина должна быть не меньше ${MinLoginLength} символов`);
+        throw new BadRequestException(`The username and password must be at least ${MinLoginLength} characters long`);
       }
   
       const user = this.usersService.create(createUserDto.username, createUserDto.password);
 
       return plainToInstance(User, user, { excludeExtraneousValues: true });
     }
-
-
 }

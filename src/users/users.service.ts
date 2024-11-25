@@ -26,7 +26,7 @@ export class UsersService {
 
         const existingUser = await this.usersRepository.findOne({ where: { username } });
         if (existingUser) {
-            throw new BadRequestException('Пользователь с таким именем уже существует');
+            throw new BadRequestException('A user with this username already exists');
         }
 
         const user = this.usersRepository.create({ username, password: hashedPassword });
