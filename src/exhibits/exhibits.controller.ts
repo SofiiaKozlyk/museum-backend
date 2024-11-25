@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ExhibitsService } from './exhibits.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -86,8 +86,19 @@ export class ExhibitsController {
         return plainToInstance(Exhibit, exhibit, { excludeExtraneousValues: true });
     }
 
-
-
-
-
+    @Delete(':id')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: 'Delete an exhibit by ID' })
+    @ApiParam({ name: 'id', description: 'ID of the exhibit', example: 1 })
+    @ApiResponse({ status: 200, description: 'Exhibit successfully deleted' })
+    @ApiResponse({ status: 403, description: 'You are not the author of this exhibit' })
+    @ApiResponse({ status: 404, description: 'Exhibit not found' })
+    async deleteExhibitById(
+      @Param('id', ParseIntPipe) id: number,
+      @Req() req,
+    ): Promise<{ message: string }> {
+      const userId = req.user.id; 
+      return await this.exhibitsService.deleteExhibitById(id, userId);
+    }
 }

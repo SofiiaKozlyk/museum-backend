@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Exhibit } from './exhibits.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -85,5 +85,24 @@ export class ExhibitsService {
     return exhibit;
   }
 
+  async deleteExhibitById(id: number, userId: number): Promise<{ message: string }> {
+    const exhibit = await this.getExhibitById(id);
 
+    if (!exhibit) {
+      throw new NotFoundException(`Exhibit with id ${id} not found`);
+    }
+
+    if (exhibit.user.id !== userId) {
+      throw new ForbiddenException(`You are not the author of this exhibit`);
+    }
+
+    const filePath = path.join(__dirname, '../../uploads', path.basename(exhibit.imageUrl));
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await this.exhibitsRepository.remove(exhibit);
+
+    return { message: 'Exhibit successfully deleted' };
+  }
 }
