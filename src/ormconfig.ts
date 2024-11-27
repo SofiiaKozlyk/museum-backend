@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { User } from './users/user.entity';
 import { Exhibit } from './exhibits/exhibits.entity';
+import { Comment } from './comments/comment.entity';
 
 export default new DataSource({
     type: 'postgres',
@@ -11,5 +12,5 @@ export default new DataSource({
     database: "museum_db",
     migrations: ['./src/migrations/*.ts'],
     synchronize: false,
-    entities: [User, Exhibit],
+    entities: [User, Exhibit, Comment],
 });

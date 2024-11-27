@@ -6,6 +6,8 @@ import { User } from './users/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { ExhibitsModule } from './exhibits/exhibits.module';
 import { Exhibit } from './exhibits/exhibits.entity';
+import { CommentsModule } from './comments/comments.module';
+import { Comment } from './comments/comment.entity';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
@@ -15,12 +17,13 @@ import { Exhibit } from './exhibits/exhibits.entity';
     username: "museum",
     password: "museum",
     database: "museum_db",
-    entities: [User, Exhibit],
+    entities: [User, Exhibit, Comment],
     synchronize: false,
   }),
     AuthModule,
     UsersModule,
     ExhibitsModule,
+    CommentsModule,
   ]
 })
 export class AppModule { }
