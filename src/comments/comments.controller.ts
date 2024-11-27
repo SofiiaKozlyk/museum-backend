@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -43,5 +43,18 @@ export class CommentsController {
         return plainToInstance(Comment, comment, { excludeExtraneousValues: true });
     }
 
-
+    @Delete(':commentId')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: 'Delete a comment by ID' })
+    @ApiResponse({ status: 200, description: 'Comment successfully deleted' })
+    @ApiResponse({ status: 403, description: 'You are not the author of this comment' })
+    @ApiResponse({ status: 404, description: 'Comment not found' })
+    async deleteComment(
+        @Param('commentId') commentId: number,
+        @Req() req,
+    ): Promise<{ message: string }> {
+        await this.commentsService.deleteComment(commentId, req.user.id);
+        return { message: 'Comment successfully deleted' };
+    }
 }

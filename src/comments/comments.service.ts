@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Exhibit } from 'src/exhibits/exhibits.entity';
 import { User } from 'src/users/user.entity';
@@ -43,7 +43,7 @@ export class CommentsService {
 
     async getCommentsByExhibitId(exhibitId: number): Promise<Comment[]> {
         const comment = await this.commentsRepository.find({
-            where: { exhibit: {id: exhibitId} },
+            where: { exhibit: { id: exhibitId } },
             relations: ['user']
         });
 
@@ -54,4 +54,29 @@ export class CommentsService {
         return comment;
     }
 
+    async deleteComment(commentId: number, userId: number): Promise<void> {
+        const comment = await this.commentsRepository.findOne({
+            where: { id: commentId }
+        });
+
+        if (!comment) {
+            throw new NotFoundException(`Comment with ID ${commentId} not found`);
+        }
+
+        if (comment.user.id !== userId) {
+            throw new ForbiddenException('You are not the author of this comment');
+        }
+
+        const exhibit = await this.exhibitsRepository.findOne({
+            where: { id: comment.exhibitId }
+        });
+
+        if (!exhibit) {
+            throw new NotFoundException(`Exhibit with ID ${comment.exhibitId} not found`);
+        }
+
+        await this.commentsRepository.remove(comment);
+        exhibit.commentCount -= 1;
+        await this.exhibitsRepository.save(exhibit);
+    }
 }
