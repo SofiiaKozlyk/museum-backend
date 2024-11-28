@@ -7,11 +7,15 @@ import { plainToInstance } from 'class-transformer';
 import { Exhibit } from './exhibits.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginatedExhibits } from 'src/types/PaginatedExhibits';
+import { NotificationsGateway } from 'src/notifications/notifications.gateway';
 
 @ApiTags('exhibits')
 @Controller('api/exhibits')
 export class ExhibitsController {
-    constructor(private readonly exhibitsService: ExhibitsService) { }
+    constructor(
+        private readonly exhibitsService: ExhibitsService,
+        private readonly notificationsService: NotificationsGateway
+    ) { }
 
     @Post()
     @UseInterceptors(FileInterceptor('image'))
@@ -50,6 +54,11 @@ export class ExhibitsController {
 
         const exhibit = this.exhibitsService.create(file, createExhibitDto.description, req.user.id);
 
+        this.notificationsService.sendNewPostNotification({
+            user: req.user.username,
+            message: createExhibitDto.description
+        })
+
         return plainToInstance(Exhibit, exhibit, { excludeExtraneousValues: true });
     }
 
@@ -78,10 +87,10 @@ export class ExhibitsController {
     @ApiResponse({ status: 404, description: 'Exhibit not found' })
     async getExhibitById(@Param('id', ParseIntPipe) id: number): Promise<Exhibit> {
         const exhibit = this.exhibitsService.getExhibitById(id);
-        
+
         if (!exhibit) {
             throw new NotFoundException(`Exhibit with id ${id} not found`);
-          }
+        }
 
         return plainToInstance(Exhibit, exhibit, { excludeExtraneousValues: true });
     }
@@ -95,10 +104,10 @@ export class ExhibitsController {
     @ApiResponse({ status: 403, description: 'You are not the author of this exhibit' })
     @ApiResponse({ status: 404, description: 'Exhibit not found' })
     async deleteExhibitById(
-      @Param('id', ParseIntPipe) id: number,
-      @Req() req,
+        @Param('id', ParseIntPipe) id: number,
+        @Req() req,
     ): Promise<{ message: string }> {
-      const userId = req.user.id; 
-      return await this.exhibitsService.deleteExhibitById(id, userId);
+        const userId = req.user.id;
+        return await this.exhibitsService.deleteExhibitById(id, userId);
     }
 }
