@@ -19,16 +19,12 @@ export class ExhibitsService {
   async create(file: Express.Multer.File, description: string, userId: number): Promise<Exhibit> {
     const uploadsDir = path.join(__dirname, '../..', 'uploads');
 
-    console.log(uploadsDir);
-
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
     const uniqueFileName = `${v4()}${path.extname(file.originalname)}`;
     const filePath = path.join(uploadsDir, uniqueFileName);
-
-    console.log(filePath);
 
     try {
       fs.writeFileSync(filePath, file.buffer);

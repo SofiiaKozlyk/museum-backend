@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, OneToMany } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Comment } from '../comments/comment.entity';
 
 @Entity()
 export class Exhibit {
@@ -40,4 +41,12 @@ export class Exhibit {
     })
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date;
+
+    @OneToMany(() => Comment, (comment) => comment.exhibit, { cascade: true })
+    @ApiProperty({ description: 'List of comments related to the exhibit', type: () => [Comment] })
+    comments: Comment[];
+
+    @Expose()
+    @Column({ default: 0})
+    commentCount: number;
 }
